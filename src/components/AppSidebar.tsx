@@ -1,10 +1,11 @@
-import { LayoutDashboard, Sparkles, Activity, Menu, X } from "lucide-react";
+import { LayoutDashboard, Sparkles, Activity, Menu, X, TrendingDown } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
+  { title: "Weight Loss Journey", url: "/weight-loss", icon: TrendingDown },
   { title: "Motivation Center", url: "/motivation", icon: Sparkles },
 ];
 
