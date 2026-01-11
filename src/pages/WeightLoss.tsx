@@ -3,6 +3,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { GoalCalculator } from "@/components/GoalCalculator";
 import { WeightRoadmap } from "@/components/WeightRoadmap";
 import { ProgressRing } from "@/components/ProgressRing";
+import { PersonalizedPlanGenerator } from "@/components/PersonalizedPlanGenerator";
 import { TrendingDown, Lightbulb } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -73,6 +74,12 @@ const WeightLoss = () => {
             totalToLose={results.totalToLose}
           />
         )}
+
+        {/* Personalized Plan Generator */}
+        <PersonalizedPlanGenerator 
+          goalWeight={goalWeight}
+          months={months}
+        />
 
         {/* Dynamic Roadmap */}
         <WeightRoadmap months={months} hasResults={!!results} />
