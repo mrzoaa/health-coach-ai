@@ -1,9 +1,16 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -12,6 +19,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { 
   Flame, 
   Dumbbell, 
@@ -27,314 +40,103 @@ import {
   Scale,
   Sparkles,
   Shield,
-  Trophy
+  Trophy,
+  User,
+  Home,
+  Activity,
+  Clock,
+  AlertTriangle,
+  CheckCircle,
+  ChevronRight,
+  Brain
 } from "lucide-react";
-import { calculateBMI, getBMICategory } from "@/lib/expertSystem";
-
-type GoalType = "shred" | "lean" | "power" | null;
-
-interface WorkoutDay {
-  day: string;
-  exercise: string;
-  setsReps: string;
-  rest: string;
-}
-
-const goalCards = [
-  {
-    id: "shred" as GoalType,
-    title: "The Shred",
-    description: "High-intensity fat burning with HIIT & cardio circuits",
-    icon: Flame,
-    color: "from-red-500/20 to-orange-500/20",
-    borderColor: "border-red-500/30",
-    iconColor: "text-red-500",
-    features: ["HIIT Workouts", "15-20 Reps", "Short Rest"]
-  },
-  {
-    id: "lean" as GoalType,
-    title: "The Lean Build",
-    description: "Balanced hybrid training for muscle tone & definition",
-    icon: TrendingUp,
-    color: "from-primary/20 to-amber-500/20",
-    borderColor: "border-primary/30",
-    iconColor: "text-primary",
-    features: ["Weights + Cardio", "8-12 Reps", "Moderate Rest"]
-  },
-  {
-    id: "power" as GoalType,
-    title: "The Power Plan",
-    description: "Heavy strength training for maximum muscle & power",
-    icon: Dumbbell,
-    color: "from-secondary/20 to-emerald-500/20",
-    borderColor: "border-secondary/30",
-    iconColor: "text-secondary",
-    features: ["Heavy Lifts", "3-5 Reps", "Long Rest"]
-  }
-];
-
-const generateWorkoutByGoal = (goal: GoalType, daysPerWeek: number): WorkoutDay[] => {
-  const isFullBody = daysPerWeek <= 3;
-  
-  const shredWorkouts: WorkoutDay[] = isFullBody ? [
-    { day: "Monday", exercise: "Burpee Blasts", setsReps: "4 sets × 20 reps", rest: "30 sec" },
-    { day: "Monday", exercise: "Mountain Climbers", setsReps: "4 sets × 30 sec", rest: "20 sec" },
-    { day: "Monday", exercise: "Jump Squats", setsReps: "4 sets × 15 reps", rest: "30 sec" },
-    { day: "Wednesday", exercise: "High Knees Sprint", setsReps: "5 sets × 30 sec", rest: "20 sec" },
-    { day: "Wednesday", exercise: "Box Jumps", setsReps: "4 sets × 15 reps", rest: "30 sec" },
-    { day: "Wednesday", exercise: "Battle Ropes", setsReps: "4 sets × 30 sec", rest: "20 sec" },
-    { day: "Friday", exercise: "Kettlebell Swings", setsReps: "4 sets × 20 reps", rest: "30 sec" },
-    { day: "Friday", exercise: "Treadmill Sprints", setsReps: "10 rounds × 30s/60s", rest: "Walk" },
-  ] : [
-    { day: "Monday", exercise: "Burpee Blasts", setsReps: "5 sets × 20 reps", rest: "20 sec" },
-    { day: "Monday", exercise: "Mountain Climbers", setsReps: "5 sets × 30 sec", rest: "15 sec" },
-    { day: "Tuesday", exercise: "High Knees Sprint", setsReps: "6 sets × 30 sec", rest: "15 sec" },
-    { day: "Tuesday", exercise: "Jump Lunges", setsReps: "4 sets × 20 reps", rest: "20 sec" },
-    { day: "Wednesday", exercise: "Active Recovery Walk", setsReps: "30 min steady", rest: "N/A" },
-    { day: "Thursday", exercise: "Box Jumps", setsReps: "5 sets × 15 reps", rest: "30 sec" },
-    { day: "Thursday", exercise: "Battle Ropes", setsReps: "5 sets × 30 sec", rest: "20 sec" },
-    { day: "Friday", exercise: "Kettlebell Swings", setsReps: "5 sets × 20 reps", rest: "25 sec" },
-    { day: "Friday", exercise: "Rowing Sprints", setsReps: "8 rounds × 30s/30s", rest: "Active" },
-    { day: "Saturday", exercise: "HIIT Circuit", setsReps: "20 min AMRAP", rest: "Minimal" },
-  ];
-
-  const leanWorkouts: WorkoutDay[] = isFullBody ? [
-    { day: "Monday", exercise: "Goblet Squats", setsReps: "3 sets × 12 reps", rest: "60 sec" },
-    { day: "Monday", exercise: "Dumbbell Bench Press", setsReps: "3 sets × 10 reps", rest: "60 sec" },
-    { day: "Monday", exercise: "Lat Pulldowns", setsReps: "3 sets × 12 reps", rest: "60 sec" },
-    { day: "Wednesday", exercise: "Romanian Deadlifts", setsReps: "3 sets × 10 reps", rest: "60 sec" },
-    { day: "Wednesday", exercise: "Shoulder Press", setsReps: "3 sets × 12 reps", rest: "60 sec" },
-    { day: "Wednesday", exercise: "Plank Holds", setsReps: "3 sets × 45 sec", rest: "45 sec" },
-    { day: "Friday", exercise: "Leg Press", setsReps: "3 sets × 12 reps", rest: "60 sec" },
-    { day: "Friday", exercise: "Cable Rows", setsReps: "3 sets × 12 reps", rest: "60 sec" },
-    { day: "Friday", exercise: "Treadmill Incline", setsReps: "20 min moderate", rest: "N/A" },
-  ] : [
-    { day: "Monday", exercise: "Barbell Squats", setsReps: "4 sets × 10 reps", rest: "60 sec" },
-    { day: "Monday", exercise: "Leg Curls", setsReps: "3 sets × 12 reps", rest: "45 sec" },
-    { day: "Tuesday", exercise: "Bench Press", setsReps: "4 sets × 10 reps", rest: "60 sec" },
-    { day: "Tuesday", exercise: "Incline DB Flyes", setsReps: "3 sets × 12 reps", rest: "45 sec" },
-    { day: "Wednesday", exercise: "LISS Cardio", setsReps: "30 min cycling", rest: "N/A" },
-    { day: "Thursday", exercise: "Bent-over Rows", setsReps: "4 sets × 10 reps", rest: "60 sec" },
-    { day: "Thursday", exercise: "Lat Pulldowns", setsReps: "3 sets × 12 reps", rest: "45 sec" },
-    { day: "Friday", exercise: "Shoulder Press", setsReps: "4 sets × 10 reps", rest: "60 sec" },
-    { day: "Friday", exercise: "Lateral Raises", setsReps: "3 sets × 15 reps", rest: "30 sec" },
-    { day: "Saturday", exercise: "HIIT Finisher", setsReps: "15 min circuits", rest: "Active" },
-  ];
-
-  const powerWorkouts: WorkoutDay[] = isFullBody ? [
-    { day: "Monday", exercise: "Barbell Squats", setsReps: "5 sets × 5 reps", rest: "3 min" },
-    { day: "Monday", exercise: "Bench Press", setsReps: "5 sets × 5 reps", rest: "3 min" },
-    { day: "Monday", exercise: "Barbell Rows", setsReps: "5 sets × 5 reps", rest: "2 min" },
-    { day: "Wednesday", exercise: "Deadlifts", setsReps: "5 sets × 3 reps", rest: "4 min" },
-    { day: "Wednesday", exercise: "Overhead Press", setsReps: "5 sets × 5 reps", rest: "3 min" },
-    { day: "Wednesday", exercise: "Pull-ups (Weighted)", setsReps: "4 sets × 5 reps", rest: "2 min" },
-    { day: "Friday", exercise: "Front Squats", setsReps: "4 sets × 5 reps", rest: "3 min" },
-    { day: "Friday", exercise: "Close-Grip Bench", setsReps: "4 sets × 5 reps", rest: "2 min" },
-  ] : [
-    { day: "Monday", exercise: "Barbell Squats", setsReps: "5 sets × 5 reps", rest: "3 min" },
-    { day: "Monday", exercise: "Leg Press", setsReps: "4 sets × 5 reps", rest: "2 min" },
-    { day: "Tuesday", exercise: "Bench Press", setsReps: "5 sets × 5 reps", rest: "3 min" },
-    { day: "Tuesday", exercise: "Incline Press", setsReps: "4 sets × 5 reps", rest: "2 min" },
-    { day: "Wednesday", exercise: "Light Mobility Work", setsReps: "20 min", rest: "N/A" },
-    { day: "Thursday", exercise: "Deadlifts", setsReps: "5 sets × 3 reps", rest: "4 min" },
-    { day: "Thursday", exercise: "Barbell Rows", setsReps: "4 sets × 5 reps", rest: "2 min" },
-    { day: "Friday", exercise: "Overhead Press", setsReps: "5 sets × 5 reps", rest: "3 min" },
-    { day: "Friday", exercise: "Weighted Dips", setsReps: "4 sets × 5 reps", rest: "2 min" },
-    { day: "Saturday", exercise: "Accessory Work", setsReps: "Weak points", rest: "As needed" },
-  ];
-
-  switch (goal) {
-    case "shred": return shredWorkouts;
-    case "lean": return leanWorkouts;
-    case "power": return powerWorkouts;
-    default: return [];
-  }
-};
-
-const calculateNutrition = (weight: number, age: number, goal: GoalType) => {
-  const bmr = 10 * weight + 6.25 * 170 - 5 * age + 5;
-  const tdee = Math.round(bmr * 1.55);
-  
-  let calorieTarget = tdee;
-  let proteinMultiplier = 1.8;
-  
-  switch (goal) {
-    case "shred":
-      calorieTarget = tdee - 500;
-      proteinMultiplier = 2.0;
-      break;
-    case "lean":
-      calorieTarget = tdee - 250;
-      proteinMultiplier = 1.8;
-      break;
-    case "power":
-      calorieTarget = tdee;
-      proteinMultiplier = 2.2;
-      break;
-  }
-  
-  return {
-    calories: Math.round(calorieTarget),
-    protein: Math.round(weight * proteinMultiplier),
-    tdee
-  };
-};
+import { 
+  runExpertSystem, 
+  UserInput, 
+  ExpertSystemResult,
+  getBmiMotivation 
+} from "@/lib/expertSystem";
 
 export function DashboardCoachHub() {
-  const [selectedGoal, setSelectedGoal] = useState<GoalType>(null);
+  // Form state
   const [age, setAge] = useState<number>(28);
   const [weight, setWeight] = useState<number>(75);
   const [height, setHeight] = useState<number>(175);
-  const [exercisePerWeek, setExercisePerWeek] = useState<number>(4);
+  const [gender, setGender] = useState<'male' | 'female'>('male');
+  const [trainingType, setTrainingType] = useState<'home' | 'gym' | 'cardio-focused'>('gym');
+  const [activityLevel, setActivityLevel] = useState<'sedentary' | 'light' | 'moderate' | 'active'>('moderate');
+  const [goalBody, setGoalBody] = useState<'recomp' | 'fat-loss'>('fat-loss');
+  const [timeframe, setTimeframe] = useState<number>(12);
+  const [goalWeight, setGoalWeight] = useState<number>(70);
+  
+  // Results state
+  const [result, setResult] = useState<ExpertSystemResult | null>(null);
   const [showResults, setShowResults] = useState(false);
-  const [bmiCalculated, setBmiCalculated] = useState(false);
-
-  const bmi = useMemo(() => calculateBMI(weight, height), [weight, height]);
-  const bmiInfo = useMemo(() => getBMICategory(bmi), [bmi]);
-  
-  const workoutPlan = useMemo(() => 
-    selectedGoal ? generateWorkoutByGoal(selectedGoal, exercisePerWeek) : [], 
-    [selectedGoal, exercisePerWeek]
-  );
-  
-  const nutrition = useMemo(() => 
-    selectedGoal ? calculateNutrition(weight, age, selectedGoal) : null, 
-    [weight, age, selectedGoal]
-  );
-
-  const handleCalculateBMI = () => {
-    setBmiCalculated(true);
-  };
 
   const handleGeneratePlan = () => {
-    if (selectedGoal) {
-      setShowResults(true);
-    }
+    const input: UserInput = {
+      age,
+      weight,
+      height,
+      gender,
+      trainingType,
+      activityLevel,
+      goalBody,
+      timeframe,
+      goalWeight
+    };
+    
+    const expertResult = runExpertSystem(input);
+    setResult(expertResult);
+    setShowResults(true);
   };
 
-  const getMotivationCard = () => {
-    switch (bmiInfo.category) {
-      case "Underweight":
-        return {
-          color: "from-accent/20 to-blue-500/20",
-          border: "border-accent/50",
-          icon: Shield,
-          iconColor: "text-accent",
-          title: "Building Foundation",
-          message: "Focus on building a strong foundation. Every brick you add makes you stronger. Your journey to a healthier weight starts with consistent, quality nutrition and progressive training."
-        };
-      case "Normal":
-        return {
-          color: "from-secondary/20 to-emerald-500/20",
-          border: "border-secondary/50",
-          icon: Trophy,
-          iconColor: "text-secondary",
-          title: "Status: Balanced",
-          message: "Excellent balance! You have achieved a fantastic equilibrium. Focus on tone and stamina to take your fitness to the next level. Your dedication to maintenance is inspiring—keep leading the way!"
-        };
-      case "Overweight":
-      case "Obese":
-        return {
-          color: "from-primary/20 to-orange-500/20",
-          border: "border-primary/50",
-          icon: Flame,
-          iconColor: "text-primary",
-          title: "The Warrior's Path",
-          message: "The marathon of health is won with consistency. Every workout is a victory, every healthy meal is progress. Focus on sustainable habits and watch your transformation unfold."
-        };
-      default:
-        return null;
-    }
-  };
-
-  const motivation = getMotivationCard();
+  const motivation = result ? getBmiMotivation(result.bmiCategory) : null;
 
   return (
     <div className="space-y-8">
-      {/* Goal Selection Section */}
-      <div className="space-y-4">
-        <div className="text-center">
-          <h3 className="text-2xl font-display font-bold mb-2">Choose Your Path</h3>
-          <p className="text-muted-foreground">Select a training goal to unlock your personalized program</p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {goalCards.map((goal) => (
-            <Card 
-              key={goal.id}
-              onClick={() => setSelectedGoal(goal.id)}
-              className={`rounded-3xl cursor-pointer transition-all duration-300 hover:scale-[1.02] ${
-                selectedGoal === goal.id 
-                  ? `${goal.borderColor} border-2 shadow-glow bg-gradient-to-br ${goal.color}` 
-                  : "border-border/50 hover:border-border"
-              }`}
-            >
-              <CardContent className="p-6 text-center space-y-4">
-                <div className={`mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br ${goal.color} flex items-center justify-center`}>
-                  <goal.icon className={`h-8 w-8 ${goal.iconColor}`} />
-                </div>
-                <div>
-                  <h4 className="font-display font-bold text-xl mb-1">{goal.title}</h4>
-                  <p className="text-muted-foreground text-sm">{goal.description}</p>
-                </div>
-                <div className="flex flex-wrap justify-center gap-2">
-                  {goal.features.map((feature, idx) => (
-                    <span 
-                      key={idx} 
-                      className="text-xs px-2 py-1 rounded-full bg-muted/50 text-muted-foreground"
-                    >
-                      {feature}
-                    </span>
-                  ))}
-                </div>
-                {selectedGoal === goal.id && (
-                  <div className="flex items-center justify-center gap-2 text-primary font-medium animate-fade-in">
-                    <Sparkles className="h-4 w-4" />
-                    Selected
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      {/* ISP543 Header */}
+      <div className="text-center">
+        <Badge variant="outline" className="mb-4 px-4 py-1 text-sm">
+          <Brain className="h-4 w-4 mr-2" />
+          ISP543 Rule-Based Expert System
+        </Badge>
+        <h3 className="text-2xl font-display font-bold mb-2">Fitness Expert System</h3>
+        <p className="text-muted-foreground">Forward-chaining inference engine with 29 production rules</p>
       </div>
 
-      {/* Smart Profile & BMI Input */}
+      {/* Input Section */}
       <Card className="rounded-3xl shadow-card border-border/50 overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 border-b border-border/30">
           <CardTitle className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-primary/10">
               <Target className="h-5 w-5 text-primary" />
             </div>
-            Your Profile & Stats
+            Input Your Data
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Age */}
-            <div className="space-y-3">
+          {/* Row 1: Basic Info */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="space-y-2">
               <Label className="text-sm font-medium flex items-center gap-2">
                 <Heart className="h-4 w-4 text-primary" />
-                Age
+                Umur (Age)
               </Label>
-              <div className="flex items-center gap-4">
-                <Slider
-                  value={[age]}
-                  onValueChange={(v) => setAge(v[0])}
-                  min={16}
-                  max={70}
-                  step={1}
-                  className="flex-1"
-                />
-                <span className="w-12 text-right font-display font-bold text-lg">{age}</span>
-              </div>
+              <Input
+                type="number"
+                value={age}
+                onChange={(e) => setAge(Number(e.target.value) || 0)}
+                min={16}
+                max={80}
+                className="rounded-xl h-12"
+              />
             </div>
 
-            {/* Weight */}
-            <div className="space-y-3">
+            <div className="space-y-2">
               <Label className="text-sm font-medium flex items-center gap-2">
                 <Scale className="h-4 w-4 text-primary" />
-                Weight (kg)
+                Berat (Weight kg)
               </Label>
               <Input
                 type="number"
@@ -342,15 +144,14 @@ export function DashboardCoachHub() {
                 onChange={(e) => setWeight(Number(e.target.value) || 0)}
                 min={30}
                 max={200}
-                className="rounded-xl h-12 text-lg font-display font-bold"
+                className="rounded-xl h-12"
               />
             </div>
 
-            {/* Height */}
-            <div className="space-y-3">
+            <div className="space-y-2">
               <Label className="text-sm font-medium flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-primary" />
-                Height (cm)
+                Tinggi (Height cm)
               </Label>
               <Input
                 type="number"
@@ -358,106 +159,289 @@ export function DashboardCoachHub() {
                 onChange={(e) => setHeight(Number(e.target.value) || 0)}
                 min={100}
                 max={250}
-                className="rounded-xl h-12 text-lg font-display font-bold"
+                className="rounded-xl h-12"
               />
             </div>
 
-            {/* Days per Week */}
-            <div className="space-y-3">
+            <div className="space-y-2">
               <Label className="text-sm font-medium flex items-center gap-2">
-                <Zap className="h-4 w-4 text-secondary" />
-                Days/Week
+                <User className="h-4 w-4 text-primary" />
+                Jantina (Gender)
               </Label>
-              <div className="flex items-center gap-4">
-                <Slider
-                  value={[exercisePerWeek]}
-                  onValueChange={(v) => setExercisePerWeek(v[0])}
-                  min={1}
-                  max={7}
-                  step={1}
-                  className="flex-1"
-                />
-                <span className="w-12 text-right font-display font-bold text-lg">{exercisePerWeek}</span>
-              </div>
+              <Select value={gender} onValueChange={(v) => setGender(v as 'male' | 'female')}>
+                <SelectTrigger className="rounded-xl h-12">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Male (Lelaki)</SelectItem>
+                  <SelectItem value="female">Female (Perempuan)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Button 
-              variant="outline" 
-              size="lg"
-              onClick={handleCalculateBMI}
-              className="flex-1 sm:flex-none"
-            >
-              <Scale className="h-5 w-5 mr-2" />
-              Calculate My BMI
-            </Button>
-            
-            <Button 
-              variant="gradient" 
-              size="lg"
-              onClick={handleGeneratePlan}
-              disabled={!selectedGoal}
-              className="flex-1"
-            >
-              <Zap className="h-5 w-5 mr-2" />
-              Generate My Personalized Plan
-            </Button>
+          {/* Row 2: Training & Activity */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <Home className="h-4 w-4 text-secondary" />
+                Training Type
+              </Label>
+              <Select value={trainingType} onValueChange={(v) => setTrainingType(v as 'home' | 'gym' | 'cardio-focused')}>
+                <SelectTrigger className="rounded-xl h-12">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="home">Home Training</SelectItem>
+                  <SelectItem value="gym">Gym Training</SelectItem>
+                  <SelectItem value="cardio-focused">Cardio-Focused</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <Activity className="h-4 w-4 text-secondary" />
+                Activity Level
+              </Label>
+              <Select value={activityLevel} onValueChange={(v) => setActivityLevel(v as 'sedentary' | 'light' | 'moderate' | 'active')}>
+                <SelectTrigger className="rounded-xl h-12">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sedentary">Sedentary</SelectItem>
+                  <SelectItem value="light">Light</SelectItem>
+                  <SelectItem value="moderate">Moderate</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <Flame className="h-4 w-4 text-secondary" />
+                Goal Body
+              </Label>
+              <Select value={goalBody} onValueChange={(v) => setGoalBody(v as 'recomp' | 'fat-loss')}>
+                <SelectTrigger className="rounded-xl h-12">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="recomp">Recomposition</SelectItem>
+                  <SelectItem value="fat-loss">Fat Loss</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+
+          {/* Row 3: Goal Settings */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <Clock className="h-4 w-4 text-accent" />
+                Timeframe (Weeks)
+              </Label>
+              <Input
+                type="number"
+                value={timeframe}
+                onChange={(e) => setTimeframe(Number(e.target.value) || 1)}
+                min={1}
+                max={52}
+                className="rounded-xl h-12"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <Target className="h-4 w-4 text-accent" />
+                Goal Weight (kg)
+              </Label>
+              <Input
+                type="number"
+                value={goalWeight}
+                onChange={(e) => setGoalWeight(Number(e.target.value) || 0)}
+                min={30}
+                max={200}
+                className="rounded-xl h-12"
+              />
+            </div>
+          </div>
+
+          <Button 
+            variant="gradient" 
+            size="lg"
+            onClick={handleGeneratePlan}
+            className="w-full"
+          >
+            <Zap className="h-5 w-5 mr-2" />
+            Run Expert System Analysis
+          </Button>
         </CardContent>
       </Card>
 
-      {/* BMI Motivation Card */}
-      {bmiCalculated && motivation && (
-        <Card className={`rounded-3xl shadow-card border-2 ${motivation.border} bg-gradient-to-br ${motivation.color} animate-fade-in overflow-hidden`}>
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <div className={`p-3 rounded-2xl bg-background/50`}>
-                <motivation.icon className={`h-8 w-8 ${motivation.iconColor}`} />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h4 className="font-display font-bold text-xl">{motivation.title}</h4>
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium bg-background/50 ${bmiInfo.color}`}>
-                    BMI: {bmi.toFixed(1)} • {bmiInfo.category}
-                  </span>
-                </div>
-                <p className="text-muted-foreground leading-relaxed">{motivation.message}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Generated Results */}
-      {showResults && selectedGoal && nutrition && (
+      {/* Results Section */}
+      {showResults && result && (
         <div className="space-y-6 animate-fade-in">
-          {/* Summary */}
-          <Card className="rounded-3xl shadow-card border-primary/30 bg-gradient-to-r from-primary/5 to-primary/10">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="p-3 rounded-2xl bg-primary/20">
-                <Target className="h-6 w-6 text-primary" />
-              </div>
-              <p className="text-lg">
-                <span className="text-muted-foreground">Your </span>
-                <span className="font-bold text-foreground">
-                  {goalCards.find(g => g.id === selectedGoal)?.title}
-                </span>
-                <span className="text-muted-foreground"> plan is ready! Training </span>
-                <span className="font-bold text-foreground">{exercisePerWeek} days/week</span>
-                <span className="text-muted-foreground"> with tailored nutrition.</span>
-              </p>
+          {/* Warnings */}
+          {result.warnings.length > 0 && (
+            <Card className="rounded-3xl shadow-card border-destructive/30 bg-destructive/5">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-2xl bg-destructive/20">
+                    <AlertTriangle className="h-6 w-6 text-destructive" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-display font-bold text-lg mb-2">Expert System Warnings</h4>
+                    <ul className="space-y-2">
+                      {result.warnings.map((warning, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
+                          <span className="text-destructive">•</span>
+                          {warning}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* BMI Motivation Card */}
+          {motivation && (
+            <Card className={`rounded-3xl shadow-card border-2 ${motivation.bgColor} animate-fade-in overflow-hidden`}>
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className={`p-3 rounded-2xl bg-background/50`}>
+                    {result.bmiCategory === 'underweight' && <Shield className="h-8 w-8 text-blue-500" />}
+                    {result.bmiCategory === 'normal' && <Trophy className="h-8 w-8 text-green-500" />}
+                    {(result.bmiCategory === 'overweight' || result.bmiCategory === 'obese') && <Flame className="h-8 w-8 text-orange-500" />}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h4 className="font-display font-bold text-xl">{motivation.title}</h4>
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium bg-background/50 ${motivation.color}`}>
+                        BMI: {result.bmi.toFixed(1)} • {result.bmiCategory.charAt(0).toUpperCase() + result.bmiCategory.slice(1)}
+                      </span>
+                    </div>
+                    <p className="text-muted-foreground leading-relaxed">{motivation.message}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Logic Logs Section */}
+          <Card className="rounded-3xl shadow-card border-border/50 overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-b border-border/30">
+              <CardTitle className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-purple-500/20">
+                  <Brain className="h-5 w-5 text-purple-500" />
+                </div>
+                Logic Logs - Rules Triggered
+                <Badge variant="secondary" className="ml-auto">
+                  {result.ruleLogs.length} Rules Fired
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="logs" className="border-0">
+                  <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                    <span className="flex items-center gap-2">
+                      <ChevronRight className="h-4 w-4" />
+                      View Inference Chain
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-6 pb-6">
+                    <div className="space-y-3 max-h-80 overflow-y-auto">
+                      {result.ruleLogs.map((log, idx) => (
+                        <div 
+                          key={idx}
+                          className="flex items-start gap-3 p-3 rounded-xl bg-muted/50 border border-border/30"
+                        >
+                          <Badge 
+                            variant="outline" 
+                            className="shrink-0 font-mono text-xs bg-primary/10 text-primary border-primary/30"
+                          >
+                            {log.ruleId}
+                          </Badge>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-mono text-muted-foreground mb-1 break-words">
+                              {log.description}
+                            </p>
+                            <p className="text-sm font-medium flex items-center gap-2">
+                              <CheckCircle className="h-3 w-3 text-green-500 shrink-0" />
+                              {log.result}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             </CardContent>
           </Card>
 
-          {/* Workout Table */}
+          {/* Explanation Facility */}
+          <Card className="rounded-3xl shadow-card border-primary/30 bg-gradient-to-r from-primary/5 to-secondary/5">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="p-3 rounded-2xl bg-primary/20">
+                  <Sparkles className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-display font-bold text-lg mb-2">Expert System Explanation</h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Based on your BMI of <span className="font-bold text-foreground">{result.bmi.toFixed(1)}</span>, 
+                    I have classified you as <span className="font-bold text-foreground capitalize">{result.bmiCategory}</span>. 
+                    I applied <span className="font-bold text-primary">Rule R{result.fatLossMode === 'mild_deficit' ? '18' : '19'}</span> for Protein 
+                    (multiplier: {result.proteinMultiplier}g/kg) 
+                    and <span className="font-bold text-primary">Rule R{result.trainingPriority === 'recomp' ? '24' : result.trainingPriority === 'fat_burning' ? '25' : '26'}</span> for Training 
+                    because you chose <span className="font-bold text-foreground capitalize">{trainingType.replace('-', ' ')}</span> training 
+                    with <span className="font-bold text-foreground capitalize">{result.trainingPriority.replace('_', ' ')}</span> priority.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Daily Targets */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="rounded-2xl border-border/50 bg-gradient-to-br from-primary/10 to-primary/5">
+              <CardContent className="p-6 text-center">
+                <Flame className="h-8 w-8 text-primary mx-auto mb-3" />
+                <p className="text-sm font-medium text-muted-foreground mb-1">Daily Calories</p>
+                <p className="text-3xl font-bold text-foreground">{result.dailyCalories}</p>
+                <p className="text-xs text-muted-foreground">TDEE {Math.round(result.tdee)} - {result.deficit}</p>
+              </CardContent>
+            </Card>
+            <Card className="rounded-2xl border-border/50 bg-gradient-to-br from-secondary/10 to-secondary/5">
+              <CardContent className="p-6 text-center">
+                <Dumbbell className="h-8 w-8 text-secondary mx-auto mb-3" />
+                <p className="text-sm font-medium text-muted-foreground mb-1">Protein Target</p>
+                <p className="text-3xl font-bold text-foreground">{result.proteinTarget}g</p>
+                <p className="text-xs text-muted-foreground">{result.proteinMultiplier}g × {weight}kg</p>
+              </CardContent>
+            </Card>
+            <Card className="rounded-2xl border-border/50 bg-gradient-to-br from-accent/10 to-blue-500/5">
+              <CardContent className="p-6 text-center">
+                <Target className="h-8 w-8 text-accent mx-auto mb-3" />
+                <p className="text-sm font-medium text-muted-foreground mb-1">Training Plan</p>
+                <p className="text-lg font-bold text-foreground">{result.trainingPlan}</p>
+                <p className="text-xs text-muted-foreground capitalize">{result.trainingPriority.replace('_', ' ')} priority</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Training Table */}
           <Card className="rounded-3xl shadow-card border-border/50 overflow-hidden">
             <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 border-b border-border/30">
               <CardTitle className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-primary/20">
                   <Dumbbell className="h-5 w-5 text-primary" />
                 </div>
-                Your Weekly Training Routine
+                Personalized Training Plan
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
@@ -472,10 +456,10 @@ export function DashboardCoachHub() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {workoutPlan.map((exercise, index) => (
+                    {result.exercises.map((exercise, index) => (
                       <TableRow key={index} className="hover:bg-muted/30 transition-colors">
                         <TableCell className="font-medium">{exercise.day}</TableCell>
-                        <TableCell>{exercise.exercise}</TableCell>
+                        <TableCell>{exercise.name}</TableCell>
                         <TableCell className="text-primary font-medium">{exercise.setsReps}</TableCell>
                         <TableCell className="text-muted-foreground">{exercise.rest}</TableCell>
                       </TableRow>
@@ -486,123 +470,126 @@ export function DashboardCoachHub() {
             </CardContent>
           </Card>
 
-          {/* Nutrition Blueprint */}
+          {/* Meal Template */}
           <Card className="rounded-3xl shadow-card border-border/50 overflow-hidden">
             <CardHeader className="bg-gradient-to-r from-secondary/10 to-secondary/5 border-b border-border/30">
               <CardTitle className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-secondary/20">
                   <Utensils className="h-5 w-5 text-secondary" />
                 </div>
-                Nutritional & Calorie Blueprint
+                Nutritional Blueprint
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
-              {/* Daily Targets */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-6 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 text-center">
-                  <Flame className="h-8 w-8 text-primary mx-auto mb-3" />
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Daily Calories</p>
-                  <p className="text-3xl font-bold text-foreground">{nutrition.calories}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {selectedGoal === "shred" ? "TDEE - 500" : selectedGoal === "lean" ? "TDEE - 250" : "Maintenance"}
-                  </p>
-                </div>
-                <div className="p-6 rounded-2xl bg-gradient-to-br from-secondary/10 to-secondary/5 border border-secondary/20 text-center">
-                  <Dumbbell className="h-8 w-8 text-secondary mx-auto mb-3" />
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Protein Target</p>
-                  <p className="text-3xl font-bold text-foreground">{nutrition.protein}g</p>
-                  <p className="text-xs text-muted-foreground">per day</p>
-                </div>
-                <div className="p-6 rounded-2xl bg-gradient-to-br from-accent/10 to-blue-500/5 border border-accent/20 text-center">
-                  <Target className="h-8 w-8 text-accent mx-auto mb-3" />
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Your TDEE</p>
-                  <p className="text-3xl font-bold text-foreground">{nutrition.tdee}</p>
-                  <p className="text-xs text-muted-foreground">maintenance calories</p>
-                </div>
+              {/* Meal Template Message */}
+              <div className="p-4 rounded-2xl bg-muted/50 border border-border/30">
+                <p className="text-sm font-medium">{result.mealTemplate}</p>
               </div>
 
               {/* Food Recommendations */}
-              <div>
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <Apple className="h-5 w-5 text-primary" />
-                  Recommended Meals
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Card className="rounded-2xl border-border/50 bg-gradient-to-br from-amber-500/5 to-amber-500/10">
-                    <CardContent className="p-5">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="p-2 rounded-xl bg-amber-500/20">
-                          <Sunrise className="h-5 w-5 text-amber-600" />
-                        </div>
-                        <h4 className="font-semibold">Breakfast</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card className="rounded-2xl border-border/50 bg-gradient-to-br from-amber-500/5 to-amber-500/10">
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 rounded-xl bg-amber-500/20">
+                        <Sunrise className="h-5 w-5 text-amber-600" />
                       </div>
-                      <ul className="space-y-2 text-sm text-muted-foreground">
-                        <li className="flex items-start gap-2">
-                          <span className="text-primary">•</span>
-                          High-protein oats with berries
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-primary">•</span>
-                          Egg white omelet with spinach
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-primary">•</span>
-                          Greek yogurt parfait
-                        </li>
-                      </ul>
-                    </CardContent>
-                  </Card>
+                      <h4 className="font-semibold">Breakfast</h4>
+                    </div>
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                      <li className="flex items-start gap-2">
+                        <span className="text-primary">•</span>
+                        High-protein oats with berries
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-primary">•</span>
+                        Egg white omelet with spinach
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-primary">•</span>
+                        Greek yogurt parfait
+                      </li>
+                    </ul>
+                  </CardContent>
+                </Card>
 
-                  <Card className="rounded-2xl border-border/50 bg-gradient-to-br from-primary/5 to-primary/10">
-                    <CardContent className="p-5">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="p-2 rounded-xl bg-primary/20">
-                          <Sun className="h-5 w-5 text-primary" />
-                        </div>
-                        <h4 className="font-semibold">Lunch/Dinner</h4>
+                <Card className="rounded-2xl border-border/50 bg-gradient-to-br from-primary/5 to-primary/10">
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 rounded-xl bg-primary/20">
+                        <Sun className="h-5 w-5 text-primary" />
                       </div>
-                      <ul className="space-y-2 text-sm text-muted-foreground">
-                        <li className="flex items-start gap-2">
-                          <span className="text-primary">•</span>
-                          Grilled chicken with quinoa
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-primary">•</span>
-                          Baked salmon with greens
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-primary">•</span>
-                          Lean turkey stir-fry
-                        </li>
-                      </ul>
-                    </CardContent>
-                  </Card>
+                      <h4 className="font-semibold">Lunch/Dinner</h4>
+                    </div>
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                      <li className="flex items-start gap-2">
+                        <span className="text-primary">•</span>
+                        Lean poultry with fiber-rich greens
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-primary">•</span>
+                        Baked fish with vegetables
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-primary">•</span>
+                        Grilled chicken with quinoa
+                      </li>
+                    </ul>
+                  </CardContent>
+                </Card>
 
-                  <Card className="rounded-2xl border-border/50 bg-gradient-to-br from-secondary/5 to-secondary/10">
-                    <CardContent className="p-5">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="p-2 rounded-xl bg-secondary/20">
-                          <Moon className="h-5 w-5 text-secondary" />
-                        </div>
-                        <h4 className="font-semibold">Snacks</h4>
+                <Card className="rounded-2xl border-border/50 bg-gradient-to-br from-secondary/5 to-secondary/10">
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 rounded-xl bg-secondary/20">
+                        <Moon className="h-5 w-5 text-secondary" />
                       </div>
-                      <ul className="space-y-2 text-sm text-muted-foreground">
-                        <li className="flex items-start gap-2">
-                          <span className="text-secondary">•</span>
-                          Almonds (handful)
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-secondary">•</span>
-                          Greek yogurt cup
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-secondary">•</span>
-                          Fresh fruit or protein shake
-                        </li>
-                      </ul>
-                    </CardContent>
-                  </Card>
+                      <h4 className="font-semibold">Snacks</h4>
+                    </div>
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                      <li className="flex items-start gap-2">
+                        <span className="text-secondary">•</span>
+                        Almonds (handful)
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-secondary">•</span>
+                        Greek yogurt
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-secondary">•</span>
+                        Fresh fruit
+                      </li>
+                    </ul>
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 12-Week Timeline */}
+          <Card className="rounded-3xl shadow-card border-border/50 overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-accent/10 to-accent/5 border-b border-border/30">
+              <CardTitle className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-accent/20">
+                  <Clock className="h-5 w-5 text-accent" />
                 </div>
+                {timeframe}-Week Timeline
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {result.timeline.map((phase, idx) => (
+                  <div 
+                    key={idx}
+                    className="p-4 rounded-2xl bg-muted/50 border border-border/30 space-y-2"
+                  >
+                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
+                      {phase.weeks}
+                    </Badge>
+                    <h4 className="font-display font-bold">{phase.phase}</h4>
+                    <p className="text-sm text-muted-foreground">{phase.focus}</p>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
