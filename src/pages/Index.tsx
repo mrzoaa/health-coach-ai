@@ -1,5 +1,4 @@
 import { AppLayout } from "@/components/AppLayout";
-import { CommunityChart } from "@/components/CommunityChart";
 import { DashboardCoachHub } from "@/components/DashboardCoachHub";
 
 const Index = () => {
@@ -24,11 +23,6 @@ const Index = () => {
           {/* Dashboard Coach Hub */}
           <div className="animate-fade-in" style={{ animationDelay: "100ms" }}>
             <DashboardCoachHub />
-          </div>
-
-          {/* Community Progress Chart */}
-          <div className="animate-fade-in" style={{ animationDelay: "200ms" }}>
-            <CommunityChart />
           </div>
         </div>
 
