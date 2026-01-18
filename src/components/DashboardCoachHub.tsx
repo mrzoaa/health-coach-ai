@@ -395,7 +395,6 @@ export function DashboardCoachHub() {
                   <p className="text-muted-foreground leading-relaxed">
                     Based on your BMI of <span className="font-bold text-foreground">{result.bmi.toFixed(1)}</span>, 
                     I have classified you as <span className="font-bold text-foreground capitalize">{result.bmiCategory}</span>. 
-                    
                     I recommended a protein multiplier of <span className="font-bold text-foreground">{result.proteinMultiplier}g/kg</span> and 
                     customized your training plan because you chose <span className="font-bold text-foreground capitalize">{trainingType.replace('-', ' ')}</span> training 
                     with <span className="font-bold text-foreground capitalize">{result.trainingPriority.replace('_', ' ')}</span> priority.
