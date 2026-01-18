@@ -48,7 +48,8 @@ import {
   AlertTriangle,
   CheckCircle,
   ChevronRight,
-  Brain
+  Brain,
+  RotateCcw
 } from "lucide-react";
 import { 
   runExpertSystem, 
@@ -266,6 +267,29 @@ export function DashboardCoachHub() {
               />
             </div>
           </div>
+
+          {/* Reset Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setAge(28);
+              setWeight(75);
+              setHeight(175);
+              setGender('male');
+              setTrainingType('gym');
+              setActivityLevel('moderate');
+              setGoalBody('fat-loss');
+              setTimeframe(12);
+              setGoalWeight(70);
+              setShowResults(false);
+              setResult(null);
+            }}
+            className="w-fit text-muted-foreground hover:text-foreground"
+          >
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Reset
+          </Button>
 
           <Button 
             variant="gradient" 
