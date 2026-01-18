@@ -102,7 +102,7 @@ export function DashboardCoachHub() {
           ISP543 Rule-Based Expert System
         </Badge>
         <h3 className="text-2xl font-display font-bold mb-2">Fitness Expert System</h3>
-        <p className="text-muted-foreground">Forward-chaining inference engine with 30 production rules</p>
+        <p className="text-muted-foreground">Build Your Dream Body.</p>
       </div>
 
       {/* Input Section */}
