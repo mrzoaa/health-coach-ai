@@ -1,5 +1,5 @@
 // ISP543 Rule-Based Fitness Expert System
-// Forward-Chaining Inference Engine with 29 Production Rules
+// Forward-Chaining Inference Engine with 30 Production Rules
 
 export interface UserInput {
   age: number;
@@ -33,6 +33,7 @@ export interface ExpertSystemResult {
   trainingPriority: 'recomp' | 'fat_burning' | 'joint_safe' | 'none';
   trainingPlan: string;
   mealTemplate: string;
+  restDays: number; // R30
   warnings: string[];
   
   // Logs
@@ -361,6 +362,25 @@ export function runExpertSystem(input: UserInput): ExpertSystemResult {
     });
   }
 
+  // ========== K. REST & RECOVERY RULES (R30) ==========
+  let restDays = 1;
+  
+  if (trainingPriority === 'fat_burning' || trainingPriority === 'joint_safe') {
+    restDays = 2;
+    ruleLogs.push({
+      ruleId: 'R30',
+      description: 'IF training_priority = fat_burning OR joint_safe THEN rest_days = 2',
+      result: `${trainingPriority.replace('_', ' ')} priority → 2 rest days/week for optimal recovery`
+    });
+  } else {
+    restDays = 1;
+    ruleLogs.push({
+      ruleId: 'R30',
+      description: 'IF training_priority = recomp THEN rest_days = 1',
+      result: 'Recomp priority → 1 rest day/week sufficient'
+    });
+  }
+
   // Generate timeline
   const timeline = generateTimeline(input.timeframe);
 
@@ -377,6 +397,7 @@ export function runExpertSystem(input: UserInput): ExpertSystemResult {
     trainingPriority,
     trainingPlan,
     mealTemplate,
+    restDays,
     warnings,
     ruleLogs,
     exercises,

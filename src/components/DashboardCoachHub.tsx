@@ -102,7 +102,7 @@ export function DashboardCoachHub() {
           ISP543 Rule-Based Expert System
         </Badge>
         <h3 className="text-2xl font-display font-bold mb-2">Fitness Expert System</h3>
-        <p className="text-muted-foreground">Forward-chaining inference engine with 29 production rules</p>
+        <p className="text-muted-foreground">Forward-chaining inference engine with 30 production rules</p>
       </div>
 
       {/* Input Section */}
@@ -395,10 +395,8 @@ export function DashboardCoachHub() {
                   <p className="text-muted-foreground leading-relaxed">
                     Based on your BMI of <span className="font-bold text-foreground">{result.bmi.toFixed(1)}</span>, 
                     I have classified you as <span className="font-bold text-foreground capitalize">{result.bmiCategory}</span>. 
-                    I applied <span className="font-bold text-primary">Rule R{result.fatLossMode === 'mild_deficit' ? '18' : '19'}</span> for Protein 
-                    (multiplier: {result.proteinMultiplier}g/kg) 
-                    and <span className="font-bold text-primary">Rule R{result.trainingPriority === 'recomp' ? '24' : result.trainingPriority === 'fat_burning' ? '25' : '26'}</span> for Training 
-                    because you chose <span className="font-bold text-foreground capitalize">{trainingType.replace('-', ' ')}</span> training 
+                    I recommended a protein multiplier of <span className="font-bold text-foreground">{result.proteinMultiplier}g/kg</span> and 
+                    customized your training plan because you chose <span className="font-bold text-foreground capitalize">{trainingType.replace('-', ' ')}</span> training 
                     with <span className="font-bold text-foreground capitalize">{result.trainingPriority.replace('_', ' ')}</span> priority.
                   </p>
                 </div>
@@ -407,13 +405,13 @@ export function DashboardCoachHub() {
           </Card>
 
           {/* Daily Targets */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card className="rounded-2xl border-border/50 bg-gradient-to-br from-primary/10 to-primary/5">
               <CardContent className="p-6 text-center">
                 <Flame className="h-8 w-8 text-primary mx-auto mb-3" />
                 <p className="text-sm font-medium text-muted-foreground mb-1">Daily Calories</p>
                 <p className="text-3xl font-bold text-foreground">{result.dailyCalories}</p>
-                <p className="text-xs text-muted-foreground">TDEE {Math.round(result.tdee)} - {result.deficit}</p>
+                <p className="text-xs text-muted-foreground">Total Daily Energy Expenditure {Math.round(result.tdee)} - {result.deficit}</p>
               </CardContent>
             </Card>
             <Card className="rounded-2xl border-border/50 bg-gradient-to-br from-secondary/10 to-secondary/5">
@@ -421,12 +419,20 @@ export function DashboardCoachHub() {
                 <Dumbbell className="h-8 w-8 text-secondary mx-auto mb-3" />
                 <p className="text-sm font-medium text-muted-foreground mb-1">Protein Target</p>
                 <p className="text-3xl font-bold text-foreground">{result.proteinTarget}g</p>
-                <p className="text-xs text-muted-foreground">{result.proteinMultiplier}g × {weight}kg</p>
+                <p className="text-xs text-muted-foreground">{weight}kg × {result.proteinMultiplier}g/kg</p>
               </CardContent>
             </Card>
-            <Card className="rounded-2xl border-border/50 bg-gradient-to-br from-accent/10 to-blue-500/5">
+            <Card className="rounded-2xl border-border/50 bg-gradient-to-br from-accent/10 to-accent/5">
               <CardContent className="p-6 text-center">
-                <Target className="h-8 w-8 text-accent mx-auto mb-3" />
+                <Moon className="h-8 w-8 text-accent mx-auto mb-3" />
+                <p className="text-sm font-medium text-muted-foreground mb-1">Rest Days</p>
+                <p className="text-3xl font-bold text-foreground">{result.restDays}</p>
+                <p className="text-xs text-muted-foreground">per week</p>
+              </CardContent>
+            </Card>
+            <Card className="rounded-2xl border-border/50 bg-gradient-to-br from-blue-500/10 to-blue-500/5">
+              <CardContent className="p-6 text-center">
+                <Target className="h-8 w-8 text-blue-500 mx-auto mb-3" />
                 <p className="text-sm font-medium text-muted-foreground mb-1">Training Plan</p>
                 <p className="text-lg font-bold text-foreground">{result.trainingPlan}</p>
                 <p className="text-xs text-muted-foreground capitalize">{result.trainingPriority.replace('_', ' ')} priority</p>
